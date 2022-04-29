@@ -158,9 +158,15 @@ func (p *Processor) ProcessFeeds(recipients []string) []error {
 			p.message(fmt.Sprintf("Fetching from same host as previous feed, %s, adding 5s delay", host))
 			sleep = 5
 		}
-
+		p.message(time.Now().Local().Format("2006-01-02.15:04:05"))
+		fmt.Printf("%#v\n", entry)
 		// Now look at each per-feed option, if any are set.
 		for _, opt := range entry.Options {
+
+			// Is it a set of tag?
+			if opt.Name == "tag" {
+				p.message(fmt.Sprintf("EntryURL: %s\nNow find tag: %s", entry.URL, entry))
+			}
 
 			// Is it a set of recipients?
 			if opt.Name == "notify" {
@@ -230,6 +236,7 @@ func (p *Processor) message(msg string) {
 func (p *Processor) processFeed(entry configfile.Feed, recipients []string) error {
 
 	// Show what we're doing.
+	p.message(time.Now().Local().Format("2006-01-02.15:04:05"))
 	p.message(fmt.Sprintf("Fetching feed: %s", entry.URL))
 
 	// Fetch the feed for the input URL
