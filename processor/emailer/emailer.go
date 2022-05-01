@@ -23,6 +23,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/mmcdole/gofeed"
@@ -122,8 +123,7 @@ func (e *Emailer) Sendmail(addresses []string, textstr string, htmlstr string) e
 	// Ensure we have a recipient.
 	//
 	if len(addresses) < 1 {
-		e := errors.New("empty recipient address, did you not setup a recipient?")
-		return e
+		return errors.New("empty recipient address, did you not setup a recipient?")
 	}
 
 	//
@@ -149,6 +149,9 @@ func (e *Emailer) Sendmail(addresses []string, textstr string, htmlstr string) e
 			// we've not wrapped/exported explicitly
 			RSSFeed *gofeed.Feed
 			RSSItem withstate.FeedItem
+
+			// Users can customize the variables that the template can use with the `Tpl.` prefix
+			Tpl map[string]string
 		}
 
 		//
@@ -163,6 +166,16 @@ func (e *Emailer) Sendmail(addresses []string, textstr string, htmlstr string) e
 		x.To = addr
 		x.RSSFeed = e.feed
 		x.RSSItem = e.item
+
+		// Users can customize the variables that the template can use with the `Tpl.` prefix
+		x.Tpl = make(map[string]string)
+		for _, opt := range e.opts {
+			if strings.HasPrefix(opt.Name, "Tpl.") {
+				x.Tpl[opt.Name[4:]] = opt.Value
+			} else {
+				continue
+			}
+		}
 
 		// The real meat of the mail is the text & HTML
 		// parts.  They need to be encoded, unconditionally.
